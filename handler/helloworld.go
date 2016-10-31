@@ -16,10 +16,11 @@ func HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 func AuthorizedHelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Authorization ヘッダーに入っているトークンを検証する
-	token, e := Authorization(r)
+	token, e := Authorization(w, r)
 
 	if e != nil {
 		EncodeJson(w, HelloWorldHandlerResponse{Success: false})
+		return
 	}
 
 	// トークンからユーザー名を取得してレスポンスに記載する

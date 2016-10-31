@@ -34,16 +34,16 @@ func AuthenticationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// アクセストークンの作成
-	accessToken, e := CreateToken(jwt.MapClaims{
+	_, accessToken, e := CreateToken(jwt.MapClaims{
 		"sub": req.Username,
-		"exp": time.Now().Add(time.Hour * 1).Unix(),
+		"exp": time.Now().Add(time.Second * 1).Unix(),
 	})
 	if e != nil {
 		panic(e)
 	}
 
 	// 更新トークンの作成
-	refreshToken, e := CreateToken(jwt.MapClaims{
+	_, refreshToken, e := CreateToken(jwt.MapClaims{
 		"sub": req.Username,
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	})
