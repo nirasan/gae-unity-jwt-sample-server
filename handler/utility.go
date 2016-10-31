@@ -4,11 +4,82 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"crypto/ecdsa"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/nirasan/gae-unity-jwt-sample-server/bindata"
 	"strings"
 )
+
+func CreateToken(claims jwt.Claims) (string, error) {
+
+	// 署名アルゴリズムの作成
+	method := jwt.GetSigningMethod("ES256")
+
+	// トークンの作成
+	token := jwt.NewWithClaims(method, claims)
+
+	// 秘密鍵の取得
+	privateKey, e := getPrivateKey()
+	if e != nil {
+		return "", e
+	}
+
+	// トークンの署名
+	signedToken, e := token.SignedString(privateKey)
+	if e != nil {
+		return "", e
+	}
+
+	return signedToken, nil
+}
+
+var cachedPrivateKey *ecdsa.PrivateKey
+
+func getPrivateKey() (*ecdsa.PrivateKey, error) {
+
+	if cachedPrivateKey != nil {
+		return cachedPrivateKey, nil
+	}
+
+	// 秘密鍵を go-bindata で固めたデータから取得
+	pem, e := bindata.Asset("assets/ec256-key-pri.pem")
+	if e != nil {
+		return nil, e
+	}
+	// 秘密鍵のパース
+	key, e := jwt.ParseECPrivateKeyFromPEM(pem)
+	if e != nil {
+		return nil, e
+	}
+
+	cachedPrivateKey = key
+	return cachedPrivateKey, nil
+}
+
+var cachedPublicKey *ecdsa.PublicKey
+
+func getPublicKey() (*ecdsa.PublicKey, error) {
+
+	if cachedPublicKey != nil {
+		return cachedPublicKey, nil
+	}
+
+	// go-bindata で固められた公開鍵を読み込む
+	pem, e := bindata.Asset("assets/ec256-key-pub.pem")
+	if e != nil {
+		return nil, e
+	}
+
+	// 公開鍵のパース
+	key, e := jwt.ParseECPublicKeyFromPEM(pem)
+	if e != nil {
+		return nil, e
+	}
+
+	cachedPublicKey = key
+	return cachedPublicKey, nil
+}
 
 // トークンの認可
 func Authorization(r *http.Request) (*jwt.Token, error) {
@@ -36,14 +107,8 @@ func Authorization(r *http.Request) (*jwt.Token, error) {
 			return nil, errors.New("Invalid signing method")
 		}
 
-		// go-bindata で固められた公開鍵を読み込む
-		pem, e := bindata.Asset("assets/ec256-key-pub.pem")
-		if e != nil {
-			return nil, e
-		}
-
-		// 公開鍵のパース
-		key, e := jwt.ParseECPublicKeyFromPEM(pem)
+		// 公開鍵の取得
+		key, e := getPublicKey()
 		if e != nil {
 			return nil, e
 		}

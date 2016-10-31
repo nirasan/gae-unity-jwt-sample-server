@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"net/http"
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 // App Engine のメイン実行ファイルの init 関数から利用されるルーティング設定を返却する関数
@@ -20,4 +20,3 @@ func NewHandler() http.Handler {
 	// ルータの返却
 	return r
 }
-

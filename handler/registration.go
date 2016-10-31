@@ -5,10 +5,10 @@ import (
 
 	"errors"
 	. "github.com/nirasan/gae-unity-jwt-sample-server/classes"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 // ユーザー登録処理

@@ -27,4 +27,3 @@ func AuthorizedHelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 		EncodeJson(w, HelloWorldHandlerResponse{Success: true, Message: "Hello " + claims["sub"].(string)})
 	}
 }
-

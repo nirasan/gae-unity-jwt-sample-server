@@ -20,7 +20,6 @@ type AuthenticationHandlerRequest struct {
 // authentication のレスポンス型
 type AuthenticationHandlerResponse struct {
 	Success bool
-	Token   string
 }
 
 // コンテンツ共通のレスポンス型

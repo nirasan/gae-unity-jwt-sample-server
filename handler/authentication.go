@@ -5,11 +5,10 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/nirasan/gae-unity-jwt-sample-server/bindata"
 	. "github.com/nirasan/gae-unity-jwt-sample-server/classes"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // ユーザー認証処理
@@ -34,29 +33,26 @@ func AuthenticationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 秘密鍵を go-bindata で固めたデータから取得
-	pem, e := bindata.Asset("assets/ec256-key-pri.pem")
-	if e != nil {
-		panic(e.Error())
-	}
-	// 署名アルゴリズムの作成
-	method := jwt.GetSigningMethod("ES256")
-	// トークンの作成
-	token := jwt.NewWithClaims(method, jwt.MapClaims{
+	// アクセストークンの作成
+	accessToken, e := CreateToken(jwt.MapClaims{
 		"sub": req.Username,
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
-	// 秘密鍵のパース
-	privateKey, e := jwt.ParseECPrivateKeyFromPEM(pem)
 	if e != nil {
-		panic(e.Error())
-	}
-	// トークンの署名
-	signedToken, e := token.SignedString(privateKey)
-	if e != nil {
-		panic(e.Error())
+		panic(e)
 	}
 
-	// JSON でトークンを返却
-	EncodeJson(w, AuthenticationHandlerResponse{Success: true, Token: signedToken})
+	// 更新トークンの作成
+	refreshToken, e := CreateToken(jwt.MapClaims{
+		"sub": req.Username,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	})
+	if e != nil {
+		panic(e)
+	}
+
+	// ヘッダーでトークンを返却
+	w.Header().Set("Set-AccessToken", accessToken)
+	w.Header().Set("Set-RefreshToken", refreshToken)
+	EncodeJson(w, AuthenticationHandlerResponse{Success: true})
 }
