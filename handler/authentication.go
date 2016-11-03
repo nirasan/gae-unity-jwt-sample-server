@@ -36,7 +36,7 @@ func AuthenticationHandler(w http.ResponseWriter, r *http.Request) {
 	// アクセストークンの作成
 	_, accessToken, e := CreateToken(jwt.MapClaims{
 		"sub": req.Username,
-		"exp": time.Now().Add(time.Second * 1).Unix(),
+		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
 	if e != nil {
 		panic(e)
